@@ -29,8 +29,8 @@ void fsm_init(void);
 fsm_state_t fsm_get_state(void);
 
 /**
- * @brief che porcoddio ne so
- * @param event dio can leggi
+ * @brief Update the FSM current state.
+ * @param event The event occured.
  */
 void fsm_update(fsm_event_t event);
 
