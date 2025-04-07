@@ -106,7 +106,7 @@ int main(void) {
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1) {
-        serial_send((uint16_t)rand()&0xffff);
+        serial_send_data((uint16_t)rand()&0xffff);
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */

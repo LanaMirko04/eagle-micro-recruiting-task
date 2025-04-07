@@ -2,7 +2,9 @@
 #include "common.h"
 #include "fsm.h"
 
+#include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 
 static const uint8_t *SERIAL_CMD_STR[] = {"raw", "moving average",
@@ -66,32 +68,42 @@ void serial_init(UART_HandleTypeDef *huart) {
     HAL_UART_Receive_IT(serial_huart, serial_buff, __SERIAL_BUFF_SIZE);
 }
 
-void serial_send(uint16_t data) {
-    serial_data_history_insert(data);
+void serial_send(const char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
 
-    uint16_t new_data;
-    switch (serial_curr_filter) {
-    case SERIAL_FILTER_NONE:
-        new_data = data;
-        break;
-
-    case SERIAL_FILTER_MOVING_AVG:
-        new_data = serial_data_moving_avg();
-        break;
-
-    case SERIAL_FILTER_RAND_NOISE:
-        new_data = data ^ ((uint16_t)rand()%0xffff);
-        break;
+    int bufflen = vsnprintf(serial_buff, __SERIAL_BUFF_SIZE, fmt, args);
+    if (ERR == bufflen) {
+        fsm_update(FSM_EVENT_ERROR);
+        return;
     }
 
-    serial_buff[0] = new_data & 0xff;
-    serial_buff[1] = (new_data >> 8) & 0xff;
-
-    HAL_StatusTypeDef stat =
-        HAL_UART_Transmit(serial_huart, serial_buff, __SERIAL_BUFF_SEND_SIZE,
+    HAL_StatusTypeDef stat = 
+        HAL_UART_Transmit(serial_huart, serial_buff, bufflen,
                           __SERIAL_SEND_TIMEOUT);
     if (HAL_OK != stat) {
         fsm_update(FSM_EVENT_ERROR);
         return;
     }
 }
+
+void serial_send_data(uint16_t data) {
+    serial_data_history_insert(data);
+
+    switch (serial_curr_filter) {
+        case SERIAL_FILTER_MOVING_AVG:
+            data = serial_data_moving_avg();
+            break;
+
+        case SERIAL_FILTER_RAND_NOISE:
+            data ^= ((uint16_t)rand()%0xffff);
+            break;
+
+        default:
+        case SERIAL_FILTER_NONE:
+            break;
+    }
+
+    serial_send("%hu\n\r", data);
+}
+

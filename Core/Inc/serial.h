@@ -61,9 +61,16 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);
 void serial_init(UART_HandleTypeDef *huart);
 
 /**
+ * @brief Write something to serial.
+ * @param fmt The format string
+ * @param ... Additional parameters to be formatted.
+void serial_send(const char* fmt, ...);
+
+/**
  * @brief Apply a filter to data and send them to serial.
  * @param data The data to send.
  */
-void serial_send(uint16_t data);
+void serial_send_data(uint16_t data);
+
 
 #endif // __SERIAL_H__
