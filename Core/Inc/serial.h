@@ -19,7 +19,7 @@
 /**
  * @brief The UART transmit timeout.
  */
-#define __SERIAL_SEND_TIMEOUT ((uint32_t)0x3e8)
+#define __SERIAL_SEND_TIMEOUT ((uint16_t)0x3e8)
 
 /**
  * @brief The size of the serial history.
@@ -61,16 +61,31 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);
 void serial_init(UART_HandleTypeDef *huart);
 
 /**
+ * @brief Read something from serial.
+ */
+void serial_read(void);
+
+/**
+ * @brief Check if buffer has been filled.
+ */
+_Bool serial_buff_is_ready(void);
+
+/**
+ * @brief Parse the buffer.
+ */
+void serial_parse_buff(void);
+
+/**
  * @brief Write something to serial.
  * @param fmt The format string
  * @param ... Additional parameters to be formatted.
-void serial_send(const char* fmt, ...);
+ */
+void serial_send(const char *fmt, ...);
 
 /**
  * @brief Apply a filter to data and send them to serial.
  * @param data The data to send.
  */
 void serial_send_data(uint16_t data);
-
 
 #endif // __SERIAL_H__
