@@ -38,7 +38,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 
 void serial_init(UART_HandleTypeDef *huart) {
     if (NULL == huart) {
-        fsm_update(FSM_EVENT_ERROR);
+        fsm_update(FSM_EVENT_ERROR); 
         return;
     }
 

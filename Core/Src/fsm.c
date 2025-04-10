@@ -25,7 +25,7 @@ void fsm_update(fsm_event_t event) {
 
     case FSM_STATE_LISTENING:
         if (FSM_EVENT_BTN_PRESSED == event) {
-            fsm_state = FSM_STATE_LISTENING;
+            fsm_state = FSM_STATE_PAUSE;
         } else if (FSM_EVENT_WARNING == event) {
             fsm_state = FSM_STATE_WARNING;
         }

@@ -7,7 +7,8 @@ typedef enum {
     FSM_STATE_LISTENING,
     FSM_STATE_PAUSE,
     FSM_STATE_WARNING,
-    FSM_STATE_ERROR
+    FSM_STATE_ERROR,
+    FSM_STATE_NUM,
 } fsm_state_t;
 
 typedef enum {
