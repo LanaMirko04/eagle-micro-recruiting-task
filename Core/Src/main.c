@@ -52,9 +52,13 @@
 ADC_HandleTypeDef hadc1;
 DMA_HandleTypeDef hdma_adc1;
 
+TIM_HandleTypeDef htim6;
+TIM_HandleTypeDef htim7;
+
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
+_Bool timer_flag;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -63,8 +67,12 @@ static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_ADC1_Init(void);
+static void MX_TIM6_Init(void);
+static void MX_TIM7_Init(void);
 /* USER CODE BEGIN PFP */
-__INLINE _Bool is_button_pressed(void);
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
+// __INLINE _Bool is_button_pressed(void);
+ _Bool is_button_pressed(void);
 __INLINE _Bool led_is_on(void);
 __INLINE void led_on(void);
 __INLINE void led_off(void);
@@ -74,7 +82,7 @@ void wait_req_task(void);
 void listening_task(void);
 void pause_task(void);
 void warning_task(void);
-// void error_task(void);
+void error_task(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -113,8 +121,11 @@ int main(void)
   MX_DMA_Init();
   MX_USART2_UART_Init();
   MX_ADC1_Init();
+  MX_TIM6_Init();
+  MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
     srand(HAL_GetTick());
+    timer_flag = FALSE;
 
     fsm_init();
     serial_init(&huart2);
@@ -153,13 +164,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-  RCC_OscInitStruct.PLL.PLLM = 16;
-  RCC_OscInitStruct.PLL.PLLN = 336;
-  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV4;
-  RCC_OscInitStruct.PLL.PLLQ = 2;
-  RCC_OscInitStruct.PLL.PLLR = 2;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -169,12 +174,12 @@ void SystemClock_Config(void)
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
   {
     Error_Handler();
   }
@@ -192,8 +197,6 @@ static void MX_ADC1_Init(void)
 
   /* USER CODE END ADC1_Init 0 */
 
-  ADC_ChannelConfTypeDef sConfig = {0};
-
   /* USER CODE BEGIN ADC1_Init 1 */
 
   /* USER CODE END ADC1_Init 1 */
@@ -201,7 +204,7 @@ static void MX_ADC1_Init(void)
   /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
   */
   hadc1.Instance = ADC1;
-  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
+  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV2;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
   hadc1.Init.ScanConvMode = DISABLE;
   hadc1.Init.ContinuousConvMode = DISABLE;
@@ -216,19 +219,85 @@ static void MX_ADC1_Init(void)
   {
     Error_Handler();
   }
-
-  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
-  */
-  sConfig.Channel = ADC_CHANNEL_0;
-  sConfig.Rank = 1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
-  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
   /* USER CODE BEGIN ADC1_Init 2 */
 
   /* USER CODE END ADC1_Init 2 */
+
+}
+
+/**
+  * @brief TIM6 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM6_Init(void)
+{
+
+  /* USER CODE BEGIN TIM6_Init 0 */
+
+  /* USER CODE END TIM6_Init 0 */
+
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM6_Init 1 */
+
+  /* USER CODE END TIM6_Init 1 */
+  htim6.Instance = TIM6;
+  htim6.Init.Prescaler = 255;
+  htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim6.Init.Period = 62499;
+  htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim6, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM6_Init 2 */
+
+  /* USER CODE END TIM6_Init 2 */
+
+}
+
+/**
+  * @brief TIM7 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM7_Init(void)
+{
+
+  /* USER CODE BEGIN TIM7_Init 0 */
+
+  /* USER CODE END TIM7_Init 0 */
+
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM7_Init 1 */
+
+  /* USER CODE END TIM7_Init 1 */
+  htim7.Instance = TIM7;
+  htim7.Init.Prescaler = 63;
+  htim7.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim7.Init.Period = 49999;
+  htim7.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim7) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim7, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM7_Init 2 */
+
+  /* USER CODE END TIM7_Init 2 */
 
 }
 
@@ -319,7 +388,12 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-__INLINE _Bool is_button_pressed(void) {
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+    timer_flag = TRUE;
+}
+
+// __INLINE _Bool is_button_pressed(void) {
+_Bool is_button_pressed(void) {
     return GPIO_PIN_RESET == HAL_GPIO_ReadPin(GPIOC, USER_BTN_PIN);
 }
 
@@ -352,6 +426,7 @@ void wait_req_task(void) {
     }
 
     if (is_button_pressed()) {
+        serial_send("button pressed: state %s", fsm_get_state());
         fsm_update(FSM_EVENT_BTN_PRESSED);
     }
 }
@@ -366,8 +441,8 @@ void listening_task(void) {
 
     hall_read_data(&hadc1);
     if (hall_data_is_ready()) {
-        // uint16_t data = hall_get_data();
-        uint16_t data = (uint16_t)rand()%0xfff; // test purpose only.
+        uint16_t data = hall_get_data();
+        // uint16_t data = (uint16_t)rand()%0xfff; // test purpose only.
         serial_send_data(data);
 
         if (0xfff == data) {
@@ -385,12 +460,26 @@ void listening_task(void) {
     }
 
     if (is_button_pressed()) {
+        serial_send("button pressed: state %s", fsm_get_state());
         fsm_update(FSM_EVENT_BTN_PRESSED);
     }
 }
 
 void pause_task(void) {
-    // TODO: led blink
+    static _Bool timer_started = FALSE;
+
+    if (!timer_started) {
+        timer_started = TRUE;
+        HAL_StatusTypeDef status = HAL_TIM_Base_Start_IT(&htim6);
+        if (HAL_OK != status) {
+            serial_send("panzzone");
+        }
+    }
+
+    if (timer_flag) {
+        timer_flag = FALSE;
+        led_toggle();
+    }
 
     serial_read();
     if (serial_buff_is_ready()) {
@@ -398,6 +487,10 @@ void pause_task(void) {
     }
 
     if (is_button_pressed()) {
+        serial_send("button pressed: state %s", fsm_get_state());
+        timer_started = FALSE;
+        timer_flag = FALSE;
+        HAL_TIM_Base_Stop_IT(&htim6);
         fsm_update(FSM_EVENT_BTN_PRESSED);
     }
 }
@@ -415,11 +508,18 @@ void warning_task(void) {
 }
 
 void error_task(void) {
-    // TODO: led blink
+    HAL_TIM_Base_Start_IT(&htim7);
+
+    if (timer_flag) {
+        timer_flag = FALSE;
+        led_toggle();
+    }
 
     serial_send("ERROR");
 
     if (is_button_pressed()) {
+        timer_flag = FALSE;
+        HAL_TIM_Base_Stop_IT(&htim7);
         NVIC_SystemReset();
     }
 }
