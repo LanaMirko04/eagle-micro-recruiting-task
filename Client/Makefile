@@ -33,7 +33,6 @@ directories:
 	@mkdir -p $(OBJ_DIR) $(BIN_DIR)
 
 # Phony targets
-.PHONY: all clean install uninstall
-
+.PHONY: all clean
 clean:
 	@rm -rf $(OBJ_DIR) $(BIN_DIR)
