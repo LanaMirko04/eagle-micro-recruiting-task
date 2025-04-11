@@ -71,8 +71,7 @@ static void MX_TIM6_Init(void);
 static void MX_TIM7_Init(void);
 /* USER CODE BEGIN PFP */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
-// __INLINE _Bool is_button_pressed(void);
- _Bool is_button_pressed(void);
+__INLINE _Bool is_button_pressed(void);
 __INLINE _Bool led_is_on(void);
 __INLINE void led_on(void);
 __INLINE void led_off(void);
@@ -392,8 +391,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     timer_flag = TRUE;
 }
 
-// __INLINE _Bool is_button_pressed(void) {
-_Bool is_button_pressed(void) {
+__INLINE _Bool is_button_pressed(void) {
     return GPIO_PIN_RESET == HAL_GPIO_ReadPin(GPIOC, USER_BTN_PIN);
 }
 
@@ -426,7 +424,6 @@ void wait_req_task(void) {
     }
 
     if (is_button_pressed()) {
-        serial_send("button pressed: state %s", fsm_get_state());
         fsm_update(FSM_EVENT_BTN_PRESSED);
     }
 }
@@ -460,21 +457,12 @@ void listening_task(void) {
     }
 
     if (is_button_pressed()) {
-        serial_send("button pressed: state %s", fsm_get_state());
         fsm_update(FSM_EVENT_BTN_PRESSED);
     }
 }
 
 void pause_task(void) {
-    static _Bool timer_started = FALSE;
-
-    if (!timer_started) {
-        timer_started = TRUE;
-        HAL_StatusTypeDef status = HAL_TIM_Base_Start_IT(&htim6);
-        if (HAL_OK != status) {
-            serial_send("panzzone");
-        }
-    }
+    HAL_StatusTypeDef status = HAL_TIM_Base_Start_IT(&htim6);
 
     if (timer_flag) {
         timer_flag = FALSE;
@@ -487,8 +475,6 @@ void pause_task(void) {
     }
 
     if (is_button_pressed()) {
-        serial_send("button pressed: state %s", fsm_get_state());
-        timer_started = FALSE;
         timer_flag = FALSE;
         HAL_TIM_Base_Stop_IT(&htim6);
         fsm_update(FSM_EVENT_BTN_PRESSED);
