@@ -2,11 +2,11 @@
 #include "defs.h"
 #include "slog.h"
 
+#include <errno.h>
+#include <fcntl.h>
 #include <stdarg.h>
 #include <string.h>
-#include <errno.h>
 #include <unistd.h>
-#include <fcntl.h>
 
 static int serial_fd = {0};
 

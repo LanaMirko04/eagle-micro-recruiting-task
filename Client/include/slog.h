@@ -9,16 +9,16 @@
 
 #include <stdio.h>
 
-#define RESET   "\033[0m"
-#define BOLD    "\033[1m"
-#define BLACK   "\033[30m"
-#define RED     "\033[31m"
-#define GREEN   "\033[32m"
-#define YELLOW  "\033[33m"
-#define BLUE    "\033[34m"
+#define RESET "\033[0m"
+#define BOLD "\033[1m"
+#define BLACK "\033[30m"
+#define RED "\033[31m"
+#define GREEN "\033[32m"
+#define YELLOW "\033[33m"
+#define BLUE "\033[34m"
 #define MAGENTA "\033[35m"
-#define CYAN    "\033[36m"
-#define WHITE   "\033[37m"
+#define CYAN "\033[36m"
+#define WHITE "\033[37m"
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,11 +28,11 @@ extern "C" {
  * @brief Enumeration representing different log levels.
  */
 enum slog_level_e {
-  LV_INFO   = 0x01, /**< Informational messages */
-  LV_DEBUG  = 0x02, /**< Debugging messages */
-  LV_WARN   = 0x04, /**< Warning messages */
-  LV_ERROR  = 0x08, /**< Error messages */
-  LV_ALL    = 0x0F  /**< All log levels */
+    LV_INFO = 0x01,  /**< Informational messages */
+    LV_DEBUG = 0x02, /**< Debugging messages */
+    LV_WARN = 0x04,  /**< Warning messages */
+    LV_ERROR = 0x08, /**< Error messages */
+    LV_ALL = 0x0F    /**< All log levels */
 };
 
 /**
@@ -40,7 +40,7 @@ enum slog_level_e {
  * @private
  */
 extern FILE *__log_file; /**< File pointer for logging */
-extern int __log_level; /**< Current log level */
+extern int __log_level;  /**< Current log level */
 
 /**
  * @def SLOG_INIT(path, log_level)
@@ -66,9 +66,9 @@ extern int __log_level; /**< Current log level */
  * SLOG_INFO("Received message: %s", message);
  * @endcode
  */
-#define SLOG_INFO(message, ...) \
-  __slog_log(LV_INFO, BOLD GREEN "[INFO]" RESET " %s:%d -> " message "\n", \
-      __FILE__, __LINE__ __VA_OPT__(,) __VA_ARGS__)
+#define SLOG_INFO(message, ...)                                                \
+    __slog_log(LV_INFO, BOLD GREEN "[INFO]" RESET " %s:%d -> " message "\n",   \
+               __FILE__, __LINE__ __VA_OPT__(, ) __VA_ARGS__)
 
 /**
  * @def SLOG_DEBUG(message, ...)
@@ -77,9 +77,9 @@ extern int __log_level; /**< Current log level */
  * @param message The format string for the log message.
  * @param ... Additional parameters to be formatted into the message.
  */
-#define SLOG_DEBUG(message, ...) \
-  __slog_log(LV_DEBUG, BOLD BLUE "[DEBUG]" RESET " %s:%d -> " message "\n", \
-      __FILE__, __LINE__ __VA_OPT__(,) __VA_ARGS__)
+#define SLOG_DEBUG(message, ...)                                               \
+    __slog_log(LV_DEBUG, BOLD BLUE "[DEBUG]" RESET " %s:%d -> " message "\n",  \
+               __FILE__, __LINE__ __VA_OPT__(, ) __VA_ARGS__)
 
 /**
  * @def SLOG_WARN(message, ...)
@@ -88,9 +88,10 @@ extern int __log_level; /**< Current log level */
  * @param message The format string for the log message.
  * @param ... Additional parameters to be formatted into the message.
  */
-#define SLOG_WARN(message, ...) \
-  __slog_log(LV_WARN, BOLD YELLOW "[WARNING]" RESET " %s:%d -> " message "\n", \
-      __FILE__, __LINE__ __VA_OPT__(,) __VA_ARGS__)
+#define SLOG_WARN(message, ...)                                                \
+    __slog_log(LV_WARN,                                                        \
+               BOLD YELLOW "[WARNING]" RESET " %s:%d -> " message "\n",        \
+               __FILE__, __LINE__ __VA_OPT__(, ) __VA_ARGS__)
 
 /**
  * @def SLOG_ERROR(message, ...)
@@ -99,9 +100,9 @@ extern int __log_level; /**< Current log level */
  * @param message The format string for the log message.
  * @param ... Additional parameters to be formatted into the message.
  */
-#define SLOG_ERROR(message, ...) \
-  __slog_log(LV_ERROR, BOLD RED "[ERROR]" RESET " %s:%d -> " message "\n", \
-      __FILE__, __LINE__ __VA_OPT__(,) __VA_ARGS__)
+#define SLOG_ERROR(message, ...)                                               \
+    __slog_log(LV_ERROR, BOLD RED "[ERROR]" RESET " %s:%d -> " message "\n",   \
+               __FILE__, __LINE__ __VA_OPT__(, ) __VA_ARGS__)
 
 /**
  * @brief Initializes the logging system.
@@ -157,11 +158,10 @@ void __slog_log(enum slog_level_e level, char *format, ...);
  * @return A new string with color codes removed.
  * @private
  */
-char* __slog_remove_color(char *str);
+char *__slog_remove_color(char *str);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif
-
