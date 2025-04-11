@@ -3,10 +3,11 @@
 #include "slog.h"
 
 #include <errno.h>
-#include <fcntl.h>
 #include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <termios.h>
 
 static int serial_fd = {0};
 
@@ -16,6 +17,18 @@ int serial_init(const char *pathname) {
         SLOG_ERROR("Unable to open the serial port: %s", strerror(errno));
         return ERR;
     }
+
+    // Configure the serial port
+    struct termios options;
+    tcgetattr(serial_fd, &options);
+    cfsetispeed(&options, B115200);
+    cfsetospeed(&options, B115200);
+    options.c_cflag |= (CLOCAL | CREAD);
+    options.c_cflag &= ~PARENB;
+    options.c_cflag &= ~CSTOPB;
+    options.c_cflag &= ~CSIZE;
+    options.c_cflag |= CS8;
+    tcsetattr(serial_fd, TCSANOW, &options);
 
     return OK;
 }
